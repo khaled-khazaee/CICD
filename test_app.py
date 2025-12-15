@@ -4,4 +4,4 @@ def test_health():
     client = app.test_client()
     response = client.get("/health")
     assert response.status_code == 200
-    assert r.json["status"] == "ok-v2"
+    assert response.json["status"] == "ok-v2"
