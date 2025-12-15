@@ -15,27 +15,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Debug - show repo files
+        shell: powershell
+        run: |
+          echo "PWD:"
+          pwd
+          echo "Repo root:"
+          dir
+          echo "k8s folder:"
+          dir k8s
+
       - name: Ensure Minikube is running
         shell: powershell
         run: |
           minikube status
           if ($LASTEXITCODE -ne 0) { minikube start }
 
-      - name: Switch Docker to Minikube
+      - name: Build (inside Minikube) and Deploy
         shell: powershell
         run: |
+          # Switch Docker to Minikube in THIS SAME step (so it persists)
           minikube docker-env --shell powershell | Invoke-Expression
 
-      - name: Build image inside Minikube
-        shell: powershell
-        run: |
           docker build -t myapp:local .
 
-      - name: Deploy to Kubernetes
-        shell: powershell
-        run: |
           kubectl apply -f k8s/deploy.yaml
           kubectl rollout restart deploy/myapp
           kubectl rollout status deploy/myapp --timeout=120s
-          kubectl get pods
+
+          kubectl get pods -l app=myapp
           kubectl get svc
