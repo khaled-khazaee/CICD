@@ -16,23 +16,23 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Ensure Minikube is running
-        shell: powershell -NoProfile -ExecutionPolicy Bypass
+        shell: powershell
         run: |
           minikube status
           if ($LASTEXITCODE -ne 0) { minikube start }
 
       - name: Switch Docker to Minikube
-        shell: powershell -NoProfile -ExecutionPolicy Bypass
+        shell: powershell
         run: |
-          minikube docker-env --shell powershell -NoProfile -ExecutionPolicy Bypass | Invoke-Expression
+          minikube docker-env --shell powershell | Invoke-Expression
 
       - name: Build image inside Minikube
-        shell: powershell -NoProfile -ExecutionPolicy Bypass
+        shell: powershell
         run: |
           docker build -t myapp:local .
 
       - name: Deploy to Kubernetes
-        shell: powershell -NoProfile -ExecutionPolicy Bypass
+        shell: powershell
         run: |
           kubectl apply -f k8s/deploy.yaml
           kubectl rollout restart deploy/myapp
