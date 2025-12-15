@@ -1,0 +1,41 @@
+name: Deploy to local Minikube (self-hosted)
+
+on:
+  push:
+    branches: [ "main" ]
+
+concurrency:
+  group: deploy-local
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, windows]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure Minikube is running
+        shell: pwsh
+        run: |
+          minikube status
+          if ($LASTEXITCODE -ne 0) { minikube start }
+
+      - name: Switch Docker to Minikube
+        shell: pwsh
+        run: |
+          minikube docker-env --shell powershell | Invoke-Expression
+
+      - name: Build image inside Minikube
+        shell: pwsh
+        run: |
+          docker build -t myapp:local .
+
+      - name: Deploy to Kubernetes
+        shell: pwsh
+        run: |
+          kubectl apply -f k8s/deploy.yaml
+          kubectl rollout restart deploy/myapp
+          kubectl rollout status deploy/myapp --timeout=120s
+          kubectl get pods
+          kubectl get svc
